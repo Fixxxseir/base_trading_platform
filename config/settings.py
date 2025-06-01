@@ -35,6 +35,7 @@ DJANGO_APPS = [
 
 PROJECT_APPS = [
     "users",
+    "trading_platform",
 ]
 
 THIRD_PARTY_APPS = [
