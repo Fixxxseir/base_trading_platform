@@ -31,6 +31,10 @@ urlpatterns = [
         name="swagger-ui",
     ),
     path(settings.API_VERSION, include("users.urls", namespace="users")),
+    path(
+        settings.API_VERSION,
+        include("trading_platform.urls", namespace="trading-platform"),
+    ),
 ]
 
 if settings.DEBUG:
