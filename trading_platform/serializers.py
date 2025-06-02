@@ -20,8 +20,8 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
     products = ProductSerializer(many=True)
     supplier = serializers.HyperlinkedRelatedField(
-        view_name="trading_platform:network-node-detail",
-        read_only=True,
+        view_name="trading-platform:network-node-detail",
+        queryset=NetworkNode.objects.all(),
         required=False,
     )
     owner = serializers.StringRelatedField(read_only=True)
@@ -50,9 +50,14 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
         logger.info(f"Создание NetworkNode с данными: {validated_data}")
         contact_data = validated_data.pop("contact")
         products_data = validated_data.pop("products")
+        supplier = validated_data.pop("supplier", None)
 
         contact = Contact.objects.create(**contact_data)
-        node = NetworkNode.objects.create(contact=contact, **validated_data)
+        node = NetworkNode.objects.create(
+            contact=contact,
+            supplier=supplier,
+            **validated_data,
+        )
 
         for product_data in products_data:
             product, created = Product.objects.get_or_create(**product_data)
@@ -64,6 +69,13 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
         return node
 
     def update(self, instance, validated_data):
+        if "supplier" in validated_data:
+            logger.warning(
+                f"Попытка обновления поля 'supplier' у NetworkNode id={instance.id} запрещена"
+            )
+            raise serializers.ValidationError(
+                {"supplier": "Изменение поставщика запрещено."}
+            )
         if "debt" in self.initial_data:
             logger.warning(
                 f"Попытка обновления поля 'debt' у NetworkNode id={instance.id} запрещена"
