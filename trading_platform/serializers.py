@@ -1,3 +1,4 @@
+from loguru import logger
 from rest_framework import serializers
 from .models import Contact, Product, NetworkNode
 from django.contrib.auth.models import User
@@ -21,7 +22,7 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
     supplier = serializers.SlugRelatedField(
         slug_field="name", queryset=NetworkNode.objects.all(), required=False
     )
-    owner = serializers.StringRelatedField()
+    owner = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = NetworkNode
@@ -36,9 +37,15 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
             "created_at",
             "owner",
         ]
-        read_only_fields = ("debt", "created_at", "level")
+        read_only_fields = (
+            "debt",
+            "created_at",
+            "level",
+            "owner",
+        )
 
     def create(self, validated_data):
+        logger.info(f"Создание NetworkNode с данными: {validated_data}")
         contact_data = validated_data.pop("contact")
         products_data = validated_data.pop("products")
 
@@ -46,7 +53,23 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
         node = NetworkNode.objects.create(contact=contact, **validated_data)
 
         for product_data in products_data:
-            product, _ = Product.objects.get_or_create(**product_data)
+            product, created = Product.objects.get_or_create(**product_data)
+            if created:
+                logger.info(f"Создан новый продукт: {product.name}")
             node.products.add(product)
 
+        logger.info(f"NetworkNode создан с id={node.id}")
         return node
+
+    def update(self, instance, validated_data):
+        if "debt" in self.initial_data:
+            logger.warning(
+                f"Попытка обновления поля 'debt' у NetworkNode id={instance.id} запрещена"
+            )
+            raise serializers.ValidationError(
+                {"debt": "Обновление задолженности запрещено."}
+            )
+        logger.info(
+            f"Обновление NetworkNode id={instance.id} с данными: {validated_data}"
+        )
+        return super().update(instance, validated_data)
