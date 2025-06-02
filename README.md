@@ -57,7 +57,7 @@
 ### Клонирование репозитория
 
 ```bash
-git clone <https://github.com/Fixxxseir/base_trading_platform.git>
+git clone https://github.com/Fixxxseir/base_trading_platform.git
 ```
 ### Установка зависимостей
 
