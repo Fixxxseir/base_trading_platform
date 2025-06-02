@@ -51,6 +51,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+class EmailVerificationSerializer(serializers.Serializer):
+    token = serializers.CharField()
+
+
 class UserLoginSerializer(serializers.Serializer):
     """
     Сериализатор входа пользователя

@@ -11,6 +11,7 @@ from .serializers import (
     CustomUserSerializer,
     UserRegisterSerializer,
     UserLoginSerializer,
+    EmailVerificationSerializer,
 )
 
 User = get_user_model()
@@ -29,6 +30,8 @@ class UserRegisterAPIView(generics.CreateAPIView):
 
 
 class EmailVerificationView(APIView):
+    serializer_class = EmailVerificationSerializer
+
     def get(self, request, token):
         user = get_object_or_404(User, token=token)
         user.is_active = True
