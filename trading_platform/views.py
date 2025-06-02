@@ -1,19 +1,17 @@
+from loguru import logger
 from rest_framework import viewsets, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import NetworkNode
+from .permissions import IsActiveUser
 from .serializers import NetworkNodeSerializer
-from django.contrib.auth.models import User
-
-
-class IsActiveUser(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.user and request.user.is_active
 
 
 class NetworkNodeViewSet(viewsets.ModelViewSet):
-    queryset = NetworkNode.objects.select_related(
-        "contact", "supplier", "owner"
-    ).prefetch_related("products")
+    queryset = (
+        NetworkNode.objects.select_related("contact", "supplier", "owner")
+        .prefetch_related("products")
+        .order_by("id")
+    )
     serializer_class = NetworkNodeSerializer
     permission_classes = [IsActiveUser]
     filter_backends = [DjangoFilterBackend]
@@ -22,3 +20,7 @@ class NetworkNodeViewSet(viewsets.ModelViewSet):
         "level": ["exact"],
         "created_at": ["gte", "lte"],
     }
+
+    def perform_create(self, serializer):
+        logger.info(f"Создание сети пользователем: {self.request.user}")
+        serializer.save(owner=self.request.user)
