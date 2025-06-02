@@ -19,8 +19,10 @@ class ProductSerializer(serializers.ModelSerializer):
 class NetworkNodeSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
     products = ProductSerializer(many=True)
-    supplier = serializers.SlugRelatedField(
-        slug_field="name", queryset=NetworkNode.objects.all(), required=False
+    supplier = serializers.HyperlinkedRelatedField(
+        view_name="trading_platform:network-node-detail",
+        read_only=True,
+        required=False,
     )
     owner = serializers.StringRelatedField(read_only=True)
 
